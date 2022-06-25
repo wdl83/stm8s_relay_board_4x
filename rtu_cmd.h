@@ -9,6 +9,15 @@
 #error "Please define RTU_ADDR_BASE"
 #endif
 
+#ifndef RELAY_NUM
+#error "Please define RELAY_NUM"
+#endif
+
+typedef struct
+{
+    uint8_t state[RELAY_NUM];
+} relay_ctl_t;
+
 typedef struct
 {
     union
@@ -16,6 +25,8 @@ typedef struct
         uint8_t data[sizeof(rtu_memory_t)];
         rtu_memory_t header;
     } rtu_memory;
+    uint16_t fw_crc16;
+    //relay_ctl_t relay_ctl;
     char tlog[TLOG_SIZE];
 } rtu_memory_fields_t;
 

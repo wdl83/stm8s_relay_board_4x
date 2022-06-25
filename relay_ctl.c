@@ -13,7 +13,6 @@
 
 #define RTU_ADDR UINT8_C(128)
 
-char buf[32];
 rtu_memory_fields_t mem;
 modbus_rtu_state_t state;
 

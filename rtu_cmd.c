@@ -2,9 +2,45 @@
 #include <stddef.h>
 
 #include <drv/tlog.h>
-#include <drv/uart1_tx.h>
+
+#include <modbus_c/crc.h>
 
 #include "rtu_cmd.h"
+
+/* FLASH layout: [HOME|GSINIT|GSTFINAL|CONST|CODE|INITIALIZER]
+ * WARNING:
+ * SDCC does not allow to access linker defined symbols in C so asm is used */
+
+static
+uint16_t fw_begin(void) __naked
+{
+    __asm__("ldw x,#s_HOME");
+    __asm__("ret");
+}
+
+static
+uint16_t fw_end(void) __naked
+{
+    __asm__("ldw x,#s_HOME");
+    __asm__("addw x,#l_HOME");
+    __asm__("addw x,#l_GSINIT");
+    __asm__("addw x,#l_GSFINAL");
+    __asm__("addw x,#l_CONST");
+    __asm__("addw x,#l_CODE");
+    __asm__("addw x,#l_INITIALIZER");
+    __asm__("ret");
+}
+
+static
+uint16_t calc_fw_checksum(void)
+{
+    uint16_t crc16 = UINT16_C(0xFFFF);
+    uint8_t *begin = (uint8_t*)fw_begin();
+    const uint8_t *const end = (uint8_t *)(fw_end());
+
+    while(begin != end) crc16 = crc16_update(crc16, *begin++);
+    return crc16;
+}
 
 void rtu_memory_fields_clear(rtu_memory_fields_t *mem)
 {
@@ -16,6 +52,7 @@ void rtu_memory_fields_init(rtu_memory_fields_t *mem)
     mem->rtu_memory.header.addr_begin = RTU_ADDR_BASE;
     mem->rtu_memory.header.addr_end =
         RTU_ADDR_BASE + sizeof(rtu_memory_fields_t) - sizeof(rtu_memory_t);
+    mem->fw_crc16 = calc_fw_checksum();
 }
 
 uint8_t *rtu_pdu_cb(
