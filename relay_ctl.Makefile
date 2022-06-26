@@ -13,11 +13,10 @@ CFLAGS += \
 		  -DMODBUS_RTU_MEMORY_WR_REGISTER_DISABLED \
 		  -DMODBUS_RXBUF_CAPACITY=64 \
 		  -DMODBUS_TXBUF_CAPACITY=256 \
-		  -DRELAY_NUM=4 \
 		  -DRTU_ADDR_BASE=0x1000 \
 		  -DRTU_ERR_REBOOT_THREASHOLD=128 \
 		  -DSTM8S003F3 \
-		  -DTLOG_SIZE=64 \
+		  -DTLOG_SIZE=128 \
 		  -DUART1_RX_NO_BUFFERING
 
 TARGET = relay_ctl
@@ -27,6 +26,7 @@ CSRCS = \
 		rtu_cmd.c
 
 LIBS_CSRCS = \
+		$(DRV)/drv/stm8_portx.c \
 		$(DRV)/drv/tim4.c \
 		$(DRV)/drv/tlog.c \
 		$(DRV)/drv/uart1_async_rx.c \
