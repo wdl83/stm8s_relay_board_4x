@@ -16,6 +16,12 @@
 
 typedef struct
 {
+    struct
+    {
+        uint8_t PENDING : 1;
+        uint8_t READY : 1;
+        uint8_t : 6;
+    } flags;
     uint8_t state[RELAY_NUM];
 } relay_ctl_t;
 
@@ -66,11 +72,11 @@ typedef struct
     uint8_t io_data;                                                    // 5 (1)
     /*------------------------------------------------------------------------*/
     /* relay control interface                                                */
-    relay_ctl_t relay_ctl;                                              // 6 (4)
+    relay_ctl_t relay_ctl;                                              // 6 (5)
     /*------------------------------------------------------------------------*/
     /* Trouble/Trace Log
      * keep it as last member so its size wont affect RTU MEM ABI             */
-    char tlog[TLOG_SIZE];                                               // 10 ()
+    char tlog[TLOG_SIZE];                                               // 11 ()
 } rtu_memory_fields_t;
 
 #define RTU_MEMORY_OFFSET(base, field) \

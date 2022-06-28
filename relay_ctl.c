@@ -54,12 +54,22 @@ void relay_init(void)
 static
 void handle_relay(rtu_memory_fields_t *mem)
 {
-    /* TODO */
     relay_ctl_t *relay_ctl = &mem->relay_ctl;
-    relay_ctl->state[0] = !(PB_ODR & M1(3));
-    relay_ctl->state[1] = !(PC_ODR & M1(3));
-    relay_ctl->state[2] = !(PC_ODR & M1(4));
-    relay_ctl->state[3] = !(PC_ODR & M1(5));
+
+    if(!relay_ctl->flags.PENDING) return;
+
+    /* sanitize user input */
+    for(uint8_t i = 0; RELAY_NUM > i; ++i) relay_ctl->state[i] &= 1;
+
+    PB_ODR = PB_ODR & ~M1(3) | (!relay_ctl->state[0]) << 3;
+    PC_ODR =
+        PB_ODR & ~M3(3, 4, 5)
+        | (!relay_ctl->state[1]) << 3
+        | (!relay_ctl->state[2]) << 4
+        | (!relay_ctl->state[3]) << 5;
+
+    relay_ctl->flags.PENDING = 0;
+    relay_ctl->flags.READY = 1;
 }
 
 /* PIT: periodic interrupt */

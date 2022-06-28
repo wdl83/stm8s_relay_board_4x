@@ -1,0 +1,11 @@
+[
+  {
+    "slave" : 128,
+    "fcode" : 66,
+    "addr_comment" : "RTU_ADDR_BASE + rtu_memory.relay_ctl offset = 4096  + 6",
+    "addr" : 4102,
+    "value_comment" : "last value is flags (set PENDING)",
+    "value" : [1, 0, 0, 0, 0],
+    "count" : 5
+  }
+]
