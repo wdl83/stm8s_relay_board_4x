@@ -2,8 +2,8 @@
   {
     "slave" : 128,
     "fcode" : 65,
-    "addr_comment" : "RTU_ADDR_BASE + rtu_memory.tlog offset = 4096  + 36",
-    "addr" : 4132,
+    "addr_comment" : "RTU_ADDR_BASE + rtu_memory.tlog offset = 4096  + 10",
+    "addr" : 4106,
     "count" : 128
   }
 ]

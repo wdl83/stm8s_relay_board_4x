@@ -1,9 +1,0 @@
-[
-  {
-    "slave" : 128,
-    "fcode" : 65,
-    "addr_comment" : "RTU_ADDR_BASE + rtu_memory.portE offset = 4096  + 22",
-    "addr" : 4118,
-    "count" : 5
-  }
-]

@@ -3,6 +3,7 @@
 #include <drv/portB.h>
 #include <drv/portC.h>
 #include <drv/stm8.h>
+#include <drv/tim2.h>
 #include <drv/tim4.h>
 #include <drv/tlog.h>
 #include <drv/uart1_async_rx.h>
@@ -14,9 +15,6 @@
 #include "rtu_cmd.h"
 
 #define RTU_ADDR UINT8_C(128)
-
-rtu_memory_fields_t mem;
-modbus_rtu_state_t state;
 
 /* Pin Mapping
  * source: https://github.com/TG9541/stm8ef/wiki/Board-C0135
@@ -54,8 +52,9 @@ void relay_init(void)
 }
 
 static
-void relay_sync(rtu_memory_fields_t *mem)
+void handle_relay(rtu_memory_fields_t *mem)
 {
+    /* TODO */
     relay_ctl_t *relay_ctl = &mem->relay_ctl;
     relay_ctl->state[0] = !(PB_ODR & M1(3));
     relay_ctl->state[1] = !(PC_ODR & M1(3));
@@ -63,16 +62,81 @@ void relay_sync(rtu_memory_fields_t *mem)
     relay_ctl->state[3] = !(PC_ODR & M1(5));
 }
 
-static
-void port_sync(rtu_memory_fields_t *mem)
+/* PIT: periodic interrupt */
+typedef struct
 {
-    stm8_port_copy(&mem->portA, PORT_A_BASE);
-    stm8_port_copy(&mem->portB, PORT_B_BASE);
-    stm8_port_copy(&mem->portC, PORT_C_BASE);
-    stm8_port_copy(&mem->portD, PORT_D_BASE);
-    stm8_port_copy(&mem->portE, PORT_E_BASE);
-    stm8_port_copy(&mem->portF, PORT_F_BASE);
+    uint16_t cntr;
+    /* main event loop should clear 'updated' bit on every PIT interrupt
+     * if its busy with modbus events - count number of skipped updates */
+    uint16_t skip_cntr;
+
+    union
+    {
+        uint8_t value;
+        struct
+        {
+            uint8_t updated : 1;
+            uint8_t : 7;
+        } bits;
+    } status;
+} pit_t;
+
+static
+void periodic_timer_cb(uintptr_t user_data)
+{
+    TIM2_INT_CLEAR();
+    pit_t *pit = (pit_t *)user_data;
+
+    pit->skip_cntr += pit->status.bits.updated;
+    ++pit->cntr;
+    pit->status.bits.updated = 1;
+    /* log every ~11min */
+    if(!pit->cntr) TLOG_XPRINT16("PIT", pit->skip_cntr);
 }
+
+static
+void periodic_timer_init(pit_t *pit)
+{
+    tim2_cb(periodic_timer_cb, (uintptr_t)pit);
+
+    TIM2_AUTO_RELOAD_PRELOAD_ENABLE();
+    // 8MHz = 8 * 10^6Hz / 8K = 976.5625Hz = 1.024ms  ~ 1ms
+    TIM2_CLK_DIV_8K();
+    TIM2_WR_TOP(10); // every ~10ms
+    TIM2_WR_CNTR(0);
+    TIM2_INT_ENABLE();
+    TIM2_INT_CLEAR();
+    TIM2_ENABLE();
+}
+
+static
+void handle_io(rtu_memory_fields_t *mem)
+{
+    if(!mem->io_mode.bits.PENDING) return;
+
+    uint8_t *data = (uint8_t *)mem->io_addr;
+
+    if(mem->io_mode.bits.RnW) mem->io_data = *data;
+    else if(mem->io_mode.bits.OR) *data |= mem->io_data;
+    else if(mem->io_mode.bits.AND) *data &= mem->io_data;
+    mem->io_mode.bits.PENDING = 0;
+    mem->io_mode.bits.READY = 1;
+
+    const char *mode[] = {"RD", "W|", "W&"};
+    TLOG_XPRINT16("IO", (uint16_t)data);
+    TLOG_XPRINT8(mode[mem->io_mode.opcode.op], *data);
+}
+
+static
+void exec(rtu_memory_fields_t *mem, pit_t *pit)
+{
+    pit->status.bits.updated = 0;
+    handle_io(mem);
+    handle_relay(mem);
+}
+
+rtu_memory_fields_t mem;
+modbus_rtu_state_t state;
 
 void main(void)
 {
@@ -87,16 +151,19 @@ void main(void)
     rtu_memory_fields_init(&mem);
     tlog_init(mem.tlog);
     relay_init();
-    port_sync(&mem);
     TLOG_XPRINT16("TLOG", RTU_MEMORY_OFFSET(&mem, tlog));
     TLOG_XPRINT16("FWCRC", mem.fw_crc16);
 
     modbus_rtu_impl(&state, RTU_ADDR, NULL, NULL, rtu_pdu_cb, (uintptr_t)&mem);
 
+    pit_t pit = {0, 0, {0}};
+    periodic_timer_init(&pit);
+
     for(;;)
     {
         INTERRUPT_DISABLE();
         modbus_rtu_event(&state);
+        if(modbus_rtu_idle(&state)) exec(&mem, &pit);
         INTERRUPT_ENABLE();
         WAIT_FOR_INTERRUPT();
     }

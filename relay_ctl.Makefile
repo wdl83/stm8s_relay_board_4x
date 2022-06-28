@@ -27,6 +27,7 @@ CSRCS = \
 
 LIBS_CSRCS = \
 		$(DRV)/drv/stm8_portx.c \
+		$(DRV)/drv/tim2.c \
 		$(DRV)/drv/tim4.c \
 		$(DRV)/drv/tlog.c \
 		$(DRV)/drv/uart1_async_rx.c \

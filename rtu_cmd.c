@@ -67,7 +67,7 @@ uint8_t *rtu_pdu_cb(
 {
     rtu_memory_fields_t *mem = (rtu_memory_fields_t *)user_data;
 
-    TLOG_XPRINT16("S|F", ((uint16_t)addr << 8) | fcode);
+    //TLOG_XPRINT16("S|F", ((uint16_t)addr << 8) | fcode);
 
     /* because crossing rtu_err_reboot_threashold will cause
      * reboot decrese error count if valid PDU received */

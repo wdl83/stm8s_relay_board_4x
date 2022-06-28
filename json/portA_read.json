@@ -1,0 +1,28 @@
+[
+  {
+    "slave" : 128,
+    "fcode" : 66,
+    "comment0" : "RTU_ADDR_BASE + rtu_memory.io_addr offset = 4096  + 2",
+    "addr" : 4098,
+    "comment1" : "PORT_A_BASE 0x5000: (0x50, 0x00) -> hex2dec -> (80, 0)",
+    "comment2" : "[RnW|PENDING|READY|?|OR|AND|?|?], set RnW and PENDING (3)",
+    "value" : [80, 0, 3],
+    "count" : 3
+  },
+  {
+    "comment" : "(optional) read io_mode to validate if request was executed",
+    "slave" : 128,
+    "fcode" : 65,
+    "addr_comment" : "RTU_ADDR_BASE + rtu_memory.io_data offset = 4096  + 4",
+    "addr" : 4100,
+    "count" : 1
+  },
+  {
+    "comment" : "get the data assuming request was executed",
+    "slave" : 128,
+    "fcode" : 65,
+    "addr_comment" : "RTU_ADDR_BASE + rtu_memory.io_data offset = 4096  + 5",
+    "addr" : 4101,
+    "count" : 1
+  }
+]
