@@ -71,7 +71,7 @@ uint8_t *rtu_pdu_cb(
 
     /* because crossing rtu_err_reboot_threashold will cause
      * reboot decrese error count if valid PDU received */
-    if(state->err_cntr) --state->err_cntr;
+    if(state->stats.err_cntr) --state->stats.err_cntr;
 
     if(modbus_rtu_addr(state) != addr) goto exit;
 
