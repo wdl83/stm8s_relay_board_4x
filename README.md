@@ -16,8 +16,32 @@ Flashing
 stm8flash -c stlinkv2 -p stm8s003f3p6 -w build/out/relay_ctl.ihx
 ```
 
+Building
+--------
+
+[sdcc](https://sdcc.sourceforge.net/) version 4.2.0 or higher is required for building.
+ 
+```console
+# Debian Linux and its derivatives
+sudo apt-get install sdcc
+```
+
+```console
+make -f relay_ctl.Makefile
+```
+
+all build artifacts are located in ***build*** directory, which can be changed
+by defining ***BUILD_DIR*** environment variable.
+
+```console
+BUILD_DIR=foo make -f relay_ctl.Makefile
+```
+
+GitHub CI is configured for the project
+[status](https://github.com/wdl83/stm8s_relay_board_4x/actions)
+
 Tools & Trouble Log
------------
+-------------------
 
 [Modbus tools](https://github.com/wdl83/modbus_tools), can be used to send/receive
 requests from the device.
