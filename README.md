@@ -26,18 +26,19 @@ Current implementation supports configurable size trouble log which can be fetch
 from the device
 
 ```console
-    master_cli -d /dev/ttyUSB0 -i json/tlog_fetch.json -o tlog.json
+master_cli -d /dev/ttyUSB0 -i json/tlog_fetch.json -o tlog.json
 ```
 
-result can be be decoded with ***tlog_dump***
+result can be be decoded with
+[tlog_dump](https://github.com/wdl83/modbus_tools/blob/master/tlog_dump.Makefile)
 
 ```console
-    cat tlog.json | tlog_dump
+cat tlog.json | tlog_dump
 ```
 
-***master_cli*** supports reading from stdin and writing to stdout, so complete
-operation can be done at once
+[master_cli](https://github.com/wdl83/modbus_tools/blob/master/master_cli.Makefile)
+supports reading from stdin and writing to stdout, so complete operation can be done at once
 
 ```console
- cat json/tlog_fetch.json | master_cli -d /dev/ttyUSB0 -i - | tlog_dump
+cat json/tlog_fetch.json | master_cli -d /dev/ttyUSB0 -i - | tlog_dump
 ```
