@@ -26,6 +26,8 @@ Building
 sudo apt-get install sdcc
 ```
 
+compile
+
 ```console
 make -f relay_ctl.Makefile
 ```
@@ -40,13 +42,37 @@ BUILD_DIR=foo make -f relay_ctl.Makefile
 GitHub CI is configured for the project
 [status](https://github.com/wdl83/stm8s_relay_board_4x/actions)
 
+
+Program Modbus RTU address in EEPROM
+------------------------------------
+
+Dump EEPROM content to file
+
+```console
+stm8flash -c stlinkv2 -p stm8s003f3p6 -s eeprom -r eeprom.bin
+```
+
+Edit ***eeprom.bin*** with your favorite editor, checkout
+[hexer](https://devel.ringlet.net/editors/hexer/).
+RTU address location in EEPROM
+
+```c
+EEPROM_ADDR_RTU_ADDR
+```
+
+is defined by [Makefile](relay_ctl.Makefile).
+
+```console
+stm8flash -c stlinkv2 -p stm8s003f3p6 -s eeprom -w eeprom.bin
+```
+
 Tools & Trouble Log
 -------------------
 
 [Modbus tools](https://github.com/wdl83/modbus_tools), can be used to send/receive
 requests from the device.
 [json](json) directory contains example requests.
-Current implementation supports configurable size trouble log which can be fetch
+Current implementation supports configurable size trouble log which can be fetched
 from the device
 
 ```console

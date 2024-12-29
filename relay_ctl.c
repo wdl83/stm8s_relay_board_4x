@@ -1,4 +1,5 @@
 #include <drv/clk.h>
+#include <drv/eeprom.h>
 #include <drv/mem.h>
 #include <drv/portB.h>
 #include <drv/portC.h>
@@ -11,10 +12,10 @@
 
 #include <modbus_c/rtu.h>
 #include <modbus_c/stm8s003f3/rtu_impl.h>
+#include <stdint.h>
 
 #include "rtu_cmd.h"
-
-#define RTU_ADDR UINT8_C(128)
+#include "stm8_drv/drv/eeprom.h"
 
 /* Pin Mapping
  * source: https://github.com/TG9541/stm8ef/wiki/Board-C0135
@@ -148,6 +149,8 @@ void exec(rtu_memory_fields_t *mem, pit_t *pit)
 rtu_memory_fields_t mem;
 modbus_rtu_state_t state;
 
+uint8_t rtu_addr = 0;
+
 void main(void)
 {
     /* at startup master clock source is HSI / 8 (16MHz / 8 = 2MHz) */
@@ -159,12 +162,14 @@ void main(void)
 
     rtu_memory_fields_clear(&mem);
     rtu_memory_fields_init(&mem);
-    tlog_init(mem.tlog);
+    tlog_init(mem.tlog, TLOG_SIZE);
     relay_init();
     TLOG_XPRINT16("TLOG", RTU_MEMORY_OFFSET(&mem, tlog));
     TLOG_XPRINT16("FWCRC", mem.fw_crc16);
+    rtu_addr = STM8_EEPROM_READ8(EEPROM_ADDR_RTU_ADDR);
+    TLOG_XPRINT8("ADDR", rtu_addr);
 
-    modbus_rtu_impl(&state, RTU_ADDR, NULL, NULL, rtu_pdu_cb, (uintptr_t)&mem);
+    modbus_rtu_impl(&state, rtu_addr, NULL, NULL, rtu_pdu_cb, (uintptr_t)&mem);
 
     pit_t pit = {0, 0, {0}};
     periodic_timer_init(&pit);
